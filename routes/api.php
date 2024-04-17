@@ -2,6 +2,9 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -16,4 +19,18 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+});
+
+Route::post('/save-file', function (Request $request) {
+    if (!$request->hasFile('file')) {
+        return response()->json(['message' => 'No file uploaded'], 400);
+    }
+
+    /** @var \Illuminate\Http\UploadedFile $disk */
+    $disk = Storage::disk('google');
+    $file = $request->file('file');
+    $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+    $path = $disk->putFileAs('', $file, $filename);
+    $url = $disk->url($filename);
+    return response()->json(['path' => $path, 'url' => $url]);
 });
